@@ -1441,5 +1441,12 @@ function switchTab(name, btn) {
 
 </script>
 <style>@keyframes fadeIn{from{opacity:0}to{opacity:1}}</style>
+     <script>
+function toggleChat() {
+  let box = document.getElementById("chatBox");
+  if (!box) return;
+  box.style.display = (box.style.display === "flex") ? "none" : "flex";
+}
+</script>
 </body>
 </html>
