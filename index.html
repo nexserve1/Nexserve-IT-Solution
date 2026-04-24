@@ -38,14 +38,72 @@
   * { margin:0; padding:0; box-sizing:border-box; }
 
   html { scroll-behavior: smooth; }
-   <script>
-function toggleChat() {
+  <!-- CHAT BUTTON -->
+<button id="chatBtn" style="
+position:fixed;
+bottom:20px;
+right:20px;
+background:#00c3ff;
+color:white;
+border:none;
+padding:15px;
+border-radius:50%;
+cursor:pointer;
+">💬</button>
+
+<!-- CHAT BOX -->
+<div id="chatBox" style="
+position:fixed;
+bottom:80px;
+right:20px;
+width:300px;
+background:#111;
+color:white;
+display:none;
+flex-direction:column;
+border-radius:10px;
+overflow:hidden;
+">
+
+<div style="background:#00c3ff;padding:10px;">Nex Serve Support</div>
+
+<div id="messages" style="height:200px;overflow:auto;padding:10px;"></div>
+
+<div style="display:flex;">
+<input id="userInput" placeholder="Type..." style="flex:1;padding:8px;border:none;">
+<button onclick="sendMessage()" style="background:#00c3ff;color:white;border:none;padding:10px;">Send</button>
+</div>
+
+</div>
+
+<script>
+// TOGGLE CHAT
+document.getElementById("chatBtn").onclick = function() {
   let box = document.getElementById("chatBox");
-  if (!box) return;
-  box.style.display = (box.style.display === "flex") ? "none" : "flex";
+  box.style.display = box.style.display === "flex" ? "none" : "flex";
+};
+
+// SEND MESSAGE
+function sendMessage() {
+  let input = document.getElementById("userInput");
+  let msg = input.value.trim();
+  if (!msg) return;
+
+  addMsg("You: " + msg);
+  input.value = "";
+
+  setTimeout(function(){
+    addMsg("Bot: We fix issues starting ₹9. WhatsApp us now!");
+  },500);
+}
+
+// ADD MESSAGE
+function addMsg(text){
+  let div = document.createElement("div");
+  div.innerText = text;
+  document.getElementById("messages").appendChild(div);
 }
 </script>
-
   body {
     font-family: 'DM Sans', sans-serif;
     color: var(--text);
