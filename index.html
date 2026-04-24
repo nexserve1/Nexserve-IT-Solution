@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-   <!-- Google tag (gtag.js) -->
+     <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-6BX290VEMV"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', 'G-6BX290VEMV');
-  </script>
+</script>
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -38,72 +38,7 @@
   * { margin:0; padding:0; box-sizing:border-box; }
 
   html { scroll-behavior: smooth; }
-  <!-- CHAT BUTTON -->
-<button id="chatBtn" style="
-position:fixed;
-bottom:20px;
-right:20px;
-background:#00c3ff;
-color:white;
-border:none;
-padding:15px;
-border-radius:50%;
-cursor:pointer;
-">💬</button>
 
-<!-- CHAT BOX -->
-<div id="chatBox" style="
-position:fixed;
-bottom:80px;
-right:20px;
-width:300px;
-background:#111;
-color:white;
-display:none;
-flex-direction:column;
-border-radius:10px;
-overflow:hidden;
-">
-
-<div style="background:#00c3ff;padding:10px;">Nex Serve Support</div>
-
-<div id="messages" style="height:200px;overflow:auto;padding:10px;"></div>
-
-<div style="display:flex;">
-<input id="userInput" placeholder="Type..." style="flex:1;padding:8px;border:none;">
-<button onclick="sendMessage()" style="background:#00c3ff;color:white;border:none;padding:10px;">Send</button>
-</div>
-
-</div>
-
-<script>
-// TOGGLE CHAT
-document.getElementById("chatBtn").onclick = function() {
-  let box = document.getElementById("chatBox");
-  box.style.display = box.style.display === "flex" ? "none" : "flex";
-};
-
-// SEND MESSAGE
-function sendMessage() {
-  let input = document.getElementById("userInput");
-  let msg = input.value.trim();
-  if (!msg) return;
-
-  addMsg("You: " + msg);
-  input.value = "";
-
-  setTimeout(function(){
-    addMsg("Bot: We fix issues starting ₹9. WhatsApp us now!");
-  },500);
-}
-
-// ADD MESSAGE
-function addMsg(text){
-  let div = document.createElement("div");
-  div.innerText = text;
-  document.getElementById("messages").appendChild(div);
-}
-</script>
   body {
     font-family: 'DM Sans', sans-serif;
     color: var(--text);
@@ -1258,7 +1193,7 @@ async function submitEscalation(){
 // AI AGENTS (Human-like)
 // ══════════════════════════════════════════
 const AGENTS = [
-  { name:'Shruti Kumari', role:'IT Support Specialist', color:'linear-gradient(135deg,#ec4899,#a855f7)',
+  { name:'Shruti Kumari', role:'IT Support Specialist', avatar:'S', color:'linear-gradient(135deg,#ec4899,#a855f7)',
     greet:"Hi there! 😊 I'm Shruti from NexServe. I'm here to help you with all your IT issues. What's troubling you today?",
     personality: ['That sounds frustrating — let me help you fix that right now!','I totally understand, this is a common issue. Here's what to do:','Great question! Here's the best solution:','Don't worry, I've helped many clients with this exact issue!'] },
   { name:'Shalu Sharma', role:'Customer Success', avatar:'SH', color:'linear-gradient(135deg,#f97316,#eab308)',
