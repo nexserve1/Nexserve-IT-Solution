@@ -1221,12 +1221,9 @@ function setAgent(a){
   document.getElementById('agentStatus').textContent=a.role+' · Online';
 }
 
-function toggleChat(){
-  chatOpen=!chatOpen;
-  document.getElementById('chatWin').classList.toggle('visible',chatOpen);
-  document.getElementById('chatWin').classList.toggle('hidden',!chatOpen);
-  document.getElementById('chatBadge').style.display='none';
-  if(chatOpen&&!chatStarted){ chatStarted=true; setAgent(currentAgent); setTimeout(startChat,400); }
+function toggleChat() {
+  let box = document.getElementById("chatBox");
+  box.style.display = (box.style.display === "flex") ? "none" : "flex";
 }
 
 function startChat(){
