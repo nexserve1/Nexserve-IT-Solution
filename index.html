@@ -38,6 +38,13 @@
   * { margin:0; padding:0; box-sizing:border-box; }
 
   html { scroll-behavior: smooth; }
+   <script>
+function toggleChat() {
+  let box = document.getElementById("chatBox");
+  if (!box) return;
+  box.style.display = (box.style.display === "flex") ? "none" : "flex";
+}
+</script>
 
   body {
     font-family: 'DM Sans', sans-serif;
