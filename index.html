@@ -987,397 +987,521 @@
 <!-- ═══════════════════════════════════════════════════
   LEAD ESCALATION POPUP (when chatbot cannot help)
 ═══════════════════════════════════════════════════ -->
-<div id="escalation-popup" style="display:none;position:fixed;inset:0;z-index:9800;background:rgba(10,22,40,0.9);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
-  <div style="background:#fff;border-radius:20px;max-width:460px;width:100%;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.3)">
-    <div style="background:linear-gradient(135deg,#0a1628,#1a56db);padding:28px 26px 22px;text-align:center">
-      <div style="font-size:36px;margin-bottom:8px">🎯</div>
-      <h2 style="font-family:Sora,sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:6px">Connect with Our Expert</h2>
-      <p style="color:rgba(255,255,255,0.75);font-size:14px">Our AI needs a bit of help with your issue. Let a real expert call you!</p>
-    </div>
-    <div style="padding:22px 26px 26px;display:flex;flex-direction:column;gap:11px">
-      <input id="esc-name" placeholder="Your Name *" style="padding:12px 15px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;font-family:DM Sans,sans-serif;outline:none;transition:border 0.2s" onfocus="this.style.borderColor='#1a56db'" onblur="this.style.borderColor='#e2e8f0'"/>
-      <input id="esc-phone" placeholder="WhatsApp Number *" type="tel" style="padding:12px 15px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;font-family:DM Sans,sans-serif;outline:none;transition:border 0.2s" onfocus="this.style.borderColor='#1a56db'" onblur="this.style.borderColor='#e2e8f0'"/>
-      <input id="esc-email" placeholder="Email Address (optional)" type="email" style="padding:12px 15px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;font-family:DM Sans,sans-serif;outline:none;transition:border 0.2s" onfocus="this.style.borderColor='#1a56db'" onblur="this.style.borderColor='#e2e8f0'"/>
-      <textarea id="esc-issue" placeholder="Describe your IT issue briefly..." rows="3" style="padding:12px 15px;border:2px solid #e2e8f0;border-radius:10px;font-size:14px;font-family:DM Sans,sans-serif;outline:none;resize:none;transition:border 0.2s" onfocus="this.style.borderColor='#1a56db'" onblur="this.style.borderColor='#e2e8f0'"></textarea>
-      <button onclick="submitEscalation()" style="background:linear-gradient(135deg,#25D366,#1ebe5d);color:#fff;padding:14px;border-radius:10px;border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:DM Sans,sans-serif;box-shadow:0 4px 15px rgba(37,211,102,0.35)">💬 Request Expert Callback</button>
-      <button onclick="document.getElementById('escalation-popup').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:13px;cursor:pointer;padding:4px">Cancel — I'll try the chatbot again</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════
-  AI CHATBOT WITH HUMAN AGENTS
-═══════════════════════════════════════════════════ -->
+<!-- ══ AI CHATBOT ══ -->
 <style>
-.svc-cta { cursor:pointer; }
-.chat-fab { position:fixed;bottom:28px;left:28px;z-index:998;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#1a56db,#00d4ff);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(26,86,219,0.5);cursor:pointer;transition:all 0.3s;border:none; }
-.chat-fab:hover { transform:scale(1.1); }
-.chat-fab-ring { position:fixed;bottom:28px;left:28px;z-index:997;width:60px;height:60px;border-radius:50%;border:2px solid #1a56db;opacity:0.5;animation:ringPulse 2s ease-out infinite; }
-@keyframes ringPulse { 0%{transform:scale(1);opacity:0.5} 100%{transform:scale(1.8);opacity:0} }
-.chat-badge { position:absolute;top:-3px;right:-3px;width:18px;height:18px;background:#ef4444;border-radius:50%;border:2px solid #fff;font-size:10px;font-weight:800;color:#fff;display:flex;align-items:center;justify-content:center; }
-.chatwin { position:fixed;bottom:100px;left:28px;z-index:999;width:355px;height:520px;background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.2);display:flex;flex-direction:column;overflow:hidden;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);transform-origin:bottom left; }
-.chatwin.hidden { opacity:0;transform:scale(0.85) translateY(20px);pointer-events:none; }
-.chatwin.visible { opacity:1;transform:scale(1) translateY(0); }
-.chat-hdr { background:linear-gradient(135deg,#0a1628,#1a56db);padding:13px 15px;display:flex;align-items:center;gap:11px;flex-shrink:0; }
-.agent-av { width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,0.2);font-weight:800;font-family:Sora,sans-serif;color:#fff; }
-.chat-hdr-info { flex:1; }
-.chat-hdr-name { color:#fff;font-family:Sora,sans-serif;font-weight:700;font-size:14px; }
-.chat-hdr-status { display:flex;align-items:center;gap:5px;margin-top:1px; }
-.status-dot { width:7px;height:7px;background:#4ade80;border-radius:50%;animation:pulse 2s infinite; }
-.chat-hdr-status span { color:rgba(255,255,255,0.7);font-size:11px; }
-.chat-x { background:rgba(255,255,255,0.15);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0; }
-.chat-msgs { flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:9px;background:#f8faff; }
-.chat-msgs::-webkit-scrollbar { width:3px; }
-.chat-msgs::-webkit-scrollbar-thumb { background:#ddd;border-radius:4px; }
-.cmsg { display:flex;gap:7px;align-items:flex-end; }
-.cmsg.bot { align-self:flex-start;max-width:90%; }
-.cmsg.user { align-self:flex-end;flex-direction:row-reverse;max-width:80%; }
-.cmsg-av { width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;font-weight:800;color:#fff; }
-.cmsg-bbl { padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.5; }
-.cmsg.bot .cmsg-bbl { background:#fff;color:#0f172a;border:1px solid #e2e8f0;border-bottom-left-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,0.06); }
-.cmsg.user .cmsg-bbl { background:linear-gradient(135deg,#1a56db,#3b82f6);color:#fff;border-bottom-right-radius:4px; }
-.qrs { display:flex;flex-wrap:wrap;gap:6px;margin-top:5px; }
-.qr { background:#fff;border:1.5px solid #1a56db;color:#1a56db;padding:5px 11px;border-radius:100px;font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;white-space:nowrap; }
-.qr:hover { background:#1a56db;color:#fff; }
-.typing-bbl { display:flex;gap:4px;padding:9px 13px; }
-.tdot { width:6px;height:6px;background:#94a3b8;border-radius:50%;animation:tdance 1.2s ease-in-out infinite; }
-.tdot:nth-child(2){animation-delay:.2s}.tdot:nth-child(3){animation-delay:.4s}
-@keyframes tdance{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
-.chat-inp-row { padding:10px 12px;border-top:1px solid #e2e8f0;display:flex;gap:8px;background:#fff;flex-shrink:0; }
-.chat-inp { flex:1;padding:9px 13px;border:1.5px solid #e2e8f0;border-radius:100px;font-size:13px;font-family:DM Sans,sans-serif;outline:none;transition:border 0.2s; }
-.chat-inp:focus { border-color:#1a56db; }
-.chat-send { width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#1a56db,#3b82f6);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s; }
+/* ── Blog read more ── */
+.blog-read-more { margin-top:10px; color:var(--blue); font-size:13px; font-weight:700; display:flex; align-items:center; gap:4px; }
+.blog-card:hover .blog-read-more { text-decoration:underline; }
+.blog-card { cursor:pointer; }
+.blog-card:hover { box-shadow:0 10px 30px rgba(26,86,219,0.13); transform:translateY(-4px); }
+
+/* ── Chatbot launcher ── */
+.chat-launcher {
+  position:fixed; bottom:28px; left:28px; z-index:998;
+  width:58px; height:58px; border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--accent));
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 6px 24px rgba(26,86,219,0.45);
+  cursor:pointer; transition:all 0.3s;
+  border:none;
+}
+.chat-launcher:hover { transform:scale(1.1); box-shadow:0 10px 32px rgba(26,86,219,0.55); }
+.chat-launcher svg { width:26px; height:26px; }
+
+.chat-badge {
+  position:absolute; top:-4px; right:-4px;
+  width:18px; height:18px; background:#ef4444; border-radius:50%;
+  border:2px solid #fff; font-size:10px; font-weight:800; color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  animation: pulse 2s infinite;
+}
+
+/* ── Chatbot window ── */
+.chatbot-window {
+  position:fixed; bottom:100px; left:28px; z-index:999;
+  width:360px; height:520px;
+  background:#fff; border-radius:20px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.2);
+  display:flex; flex-direction:column;
+  overflow:hidden;
+  transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  transform-origin:bottom left;
+}
+.chatbot-window.hidden {
+  opacity:0; transform:scale(0.85) translateY(20px); pointer-events:none;
+}
+.chatbot-window.visible {
+  opacity:1; transform:scale(1) translateY(0);
+}
+
+/* Header */
+.chat-header {
+  background:linear-gradient(135deg,var(--navy),var(--blue));
+  padding:16px 18px; display:flex; align-items:center; gap:12px;
+  flex-shrink:0;
+}
+.chat-avatar {
+  width:42px; height:42px; border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--blue-light));
+  display:flex; align-items:center; justify-content:center;
+  font-size:20px; flex-shrink:0;
+  box-shadow:0 0 0 3px rgba(255,255,255,0.2);
+}
+.chat-header-info { flex:1; }
+.chat-header-name { color:#fff; font-family:'Sora',sans-serif; font-weight:700; font-size:15px; }
+.chat-header-status { display:flex; align-items:center; gap:5px; }
+.chat-status-dot { width:7px; height:7px; background:#4ade80; border-radius:50%; animation:pulse 2s infinite; }
+.chat-header-status span { color:rgba(255,255,255,0.7); font-size:12px; }
+.chat-close { background:rgba(255,255,255,0.15); border:none; color:#fff; width:30px; height:30px; border-radius:50%; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
+.chat-close:hover { background:rgba(255,255,255,0.25); }
+
+/* Messages */
+.chat-messages {
+  flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px;
+  background:#f8faff;
+}
+.chat-messages::-webkit-scrollbar { width:4px; }
+.chat-messages::-webkit-scrollbar-thumb { background:#ddd; border-radius:4px; }
+
+.msg { display:flex; gap:8px; align-items:flex-end; max-width:85%; }
+.msg.bot { align-self:flex-start; }
+.msg.user { align-self:flex-end; flex-direction:row-reverse; }
+
+.msg-avatar { width:28px; height:28px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--accent)); display:flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
+
+.msg-bubble {
+  padding:10px 14px; border-radius:16px; font-size:14px; line-height:1.5;
+  max-width:100%;
+}
+.msg.bot .msg-bubble { background:#fff; color:var(--text); border:1px solid var(--border); border-bottom-left-radius:4px; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
+.msg.user .msg-bubble { background:linear-gradient(135deg,var(--blue),var(--blue-light)); color:#fff; border-bottom-right-radius:4px; }
+
+/* Quick replies */
+.quick-replies { display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
+.qr-btn {
+  background:#fff; border:1.5px solid var(--blue); color:var(--blue);
+  padding:6px 12px; border-radius:100px; font-size:12px; font-weight:600;
+  cursor:pointer; transition:all 0.2s; white-space:nowrap;
+}
+.qr-btn:hover { background:var(--blue); color:#fff; }
+
+/* Typing indicator */
+.typing-indicator { display:flex; gap:4px; align-items:center; padding:10px 14px; }
+.typing-dot { width:7px; height:7px; background:#94a3b8; border-radius:50%; animation:typingBounce 1.2s ease-in-out infinite; }
+.typing-dot:nth-child(2) { animation-delay:0.2s; }
+.typing-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes typingBounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+/* Input area */
+.chat-input-area {
+  padding:12px 14px; border-top:1px solid var(--border); display:flex; gap:8px; background:#fff; flex-shrink:0;
+}
+.chat-input {
+  flex:1; padding:10px 14px; border:1.5px solid var(--border); border-radius:100px;
+  font-size:14px; font-family:'DM Sans',sans-serif; outline:none; transition:border 0.2s;
+}
+.chat-input:focus { border-color:var(--blue); }
+.chat-send {
+  width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--blue),var(--blue-light));
+  border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  transition:all 0.2s; flex-shrink:0;
+}
 .chat-send:hover { transform:scale(1.1); }
-.blog-card:hover { transform:translateY(-4px);box-shadow:0 12px 30px rgba(26,86,219,0.13); }
-@media(max-width:480px){.chatwin{width:calc(100vw - 28px);left:14px;bottom:86px;}.chat-fab,.chat-fab-ring{left:16px;bottom:16px;}}
+
+@media(max-width:480px){
+  .chatbot-window { width:calc(100vw - 32px); left:16px; bottom:90px; }
+  .chat-launcher { left:16px; bottom:16px; }
+}
 </style>
 
-<div class="chat-fab-ring"></div>
-<button class="chat-fab" onclick="toggleChat()" id="chatFab">
-  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><circle cx="9" cy="10" r="1" fill="white" stroke="none"/><circle cx="12" cy="10" r="1" fill="white" stroke="none"/><circle cx="15" cy="10" r="1" fill="white" stroke="none"/></svg>
-  <span class="chat-badge" id="chatBadge">1</span>
+<!-- Chatbot launcher button -->
+<button class="chat-launcher" onclick="toggleChat()" title="Chat with NexServe AI" style="position:fixed;bottom:28px;left:28px;z-index:998">
+  <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+    <circle cx="9" cy="10" r="1" fill="white" stroke="none"/>
+    <circle cx="12" cy="10" r="1" fill="white" stroke="none"/>
+    <circle cx="15" cy="10" r="1" fill="white" stroke="none"/>
+  </svg>
+  <span class="chat-badge">1</span>
 </button>
 
-<div class="chatwin hidden" id="chatWin">
-  <div class="chat-hdr" id="chatHdr">
-    <div class="agent-av" id="agentAv" style="background:linear-gradient(135deg,#00d4ff,#1a56db)">🤖</div>
-    <div class="chat-hdr-info">
-      <div class="chat-hdr-name" id="agentName">NexServe Assistant</div>
-      <div class="chat-hdr-status"><span class="status-dot"></span><span id="agentStatus">Online · Instant replies</span></div>
+<!-- Chatbot window -->
+<div class="chatbot-window hidden" id="chatbot-window">
+  <div class="chat-header">
+    <div class="chat-avatar">🤖</div>
+    <div class="chat-header-info">
+      <div class="chat-header-name">NexServe Assistant</div>
+      <div class="chat-header-status"><span class="chat-status-dot"></span><span>Online · Replies instantly</span></div>
     </div>
-    <button class="chat-x" onclick="toggleChat()">✕</button>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
   </div>
-  <div class="chat-msgs" id="chatMsgs"></div>
-  <div class="chat-inp-row">
-    <input class="chat-inp" id="chatInp" placeholder="Type your IT problem..." onkeydown="if(event.key==='Enter')sendChat()"/>
-    <button class="chat-send" onclick="sendChat()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
+  <div class="chat-messages" id="chat-messages"></div>
+  <div class="chat-input-area">
+    <input class="chat-input" id="chat-input" placeholder="Type your question..." onkeydown="if(event.key==='Enter')sendUserMsg()"/>
+    <button class="chat-send" onclick="sendUserMsg()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/></svg>
     </button>
   </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════
-// GOOGLE SHEETS LEAD SAVE
-// Replace YOUR_SCRIPT_URL with your Apps Script Web App URL
-// ══════════════════════════════════════════
-const SHEET_URL = 'YOUR_GOOGLE_APPS_SCRIPT_URL';
-const WA_NUM = '919650046549';
+  // ══════════════════════════════════════════
+  // BLOG TIP DATA
+  // ══════════════════════════════════════════
+  const tips = [
+    {
+      tag: 'Performance',
+      title: 'How to Fix a Slow Laptop in 5 Minutes',
+      meta: '5 min read · Beginner Friendly',
+      content: `
+        <p style="font-size:16px;font-weight:600;color:#0a1628;margin-bottom:16px">Is your laptop slow? Try these quick fixes right now:</p>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#f8faff;border-left:4px solid #1a56db;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>Step 1 — Restart Your Laptop</strong><br/>
+            <span style="color:#64748b;font-size:14px">Sounds simple, but a fresh restart clears RAM and stops stuck background processes. Do this first, always.</span>
+          </div>
+          <div style="background:#f8faff;border-left:4px solid #1a56db;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>Step 2 — Disable Startup Programs</strong><br/>
+            <span style="color:#64748b;font-size:14px">Press <code style="background:#e2e8f0;padding:1px 6px;border-radius:4px">Ctrl + Shift + Esc</code> → Startup tab → Right-click and Disable apps you don't need at startup. This alone can speed up boot by 2–3x.</span>
+          </div>
+          <div style="background:#f8faff;border-left:4px solid #1a56db;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>Step 3 — Free Up Disk Space</strong><br/>
+            <span style="color:#64748b;font-size:14px">Open <b>This PC</b> → Right-click C: drive → Properties → Disk Cleanup. Delete temp files, old Windows updates. Aim to keep at least 10–15% of drive free.</span>
+          </div>
+          <div style="background:#f8faff;border-left:4px solid #1a56db;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>Step 4 — Check for Viruses</strong><br/>
+            <span style="color:#64748b;font-size:14px">Run Windows Defender: Start → Windows Security → Quick Scan. Malware often runs silently and drains all your resources.</span>
+          </div>
+          <div style="background:#f8faff;border-left:4px solid #1a56db;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>Step 5 — Adjust Power Settings</strong><br/>
+            <span style="color:#64748b;font-size:14px">Search "Power Plan" → Select <b>High Performance</b>. Many laptops default to battery-saving mode which throttles your processor.</span>
+          </div>
+          <div style="background:#fff3cd;border-left:4px solid #f59e0b;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>⚠️ Still Slow?</strong><br/>
+            <span style="color:#64748b;font-size:14px">If none of the above helps, you may need a RAM upgrade, SSD upgrade, or deep virus removal. Our experts fix this in 60 minutes — starting at just ₹299.</span>
+          </div>
+        </div>`
+    },
+    {
+      tag: 'WiFi',
+      title: 'Common WiFi Issues and How to Solve Them at Home',
+      meta: '7 min read · All Levels',
+      content: `
+        <p style="font-size:16px;font-weight:600;color:#0a1628;margin-bottom:16px">WiFi dropping or slow? Here's what to check:</p>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>🔁 Fix 1 — Restart Your Router</strong><br/>
+            <span style="color:#64748b;font-size:14px">Unplug the router for 30 seconds, then plug back in. Wait 2 minutes. This fixes 70% of WiFi issues instantly.</span>
+          </div>
+          <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>📍 Fix 2 — Router Placement</strong><br/>
+            <span style="color:#64748b;font-size:14px">Place your router in a central, elevated location. Keep it away from walls, microwaves, and other electronics. Dead zones are often just placement issues.</span>
+          </div>
+          <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>📶 Fix 3 — Connect to 5GHz Band</strong><br/>
+            <span style="color:#64748b;font-size:14px">If your router supports dual-band, connect to the 5GHz network (usually named "YourNetwork_5G"). It's faster, though shorter range than 2.4GHz.</span>
+          </div>
+          <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>🔧 Fix 4 — Update Network Drivers</strong><br/>
+            <span style="color:#64748b;font-size:14px">Device Manager → Network Adapters → Right-click your WiFi adapter → Update driver. Outdated drivers cause random disconnections.</span>
+          </div>
+          <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>🔄 Fix 5 — Change DNS Server</strong><br/>
+            <span style="color:#64748b;font-size:14px">Network Settings → Change adapter options → Right-click WiFi → Properties → IPv4 → Use these DNS: <code style="background:#e2e8f0;padding:1px 6px;border-radius:4px">8.8.8.8</code> and <code style="background:#e2e8f0;padding:1px 6px;border-radius:4px">8.8.4.4</code> (Google DNS). This speeds up browsing.</span>
+          </div>
+          <div style="background:#fff3cd;border-left:4px solid #f59e0b;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>⚠️ Still Dropping?</strong><br/>
+            <span style="color:#64748b;font-size:14px">Might be an ISP issue, router firmware bug, or coverage problem. We do full WiFi setup and optimization for homes and offices — starting at ₹299.</span>
+          </div>
+        </div>`
+    },
+    {
+      tag: 'Productivity',
+      title: 'Best Excel Shortcuts Every Professional Should Know',
+      meta: '4 min read · Beginner Friendly',
+      content: `
+        <p style="font-size:16px;font-weight:600;color:#0a1628;margin-bottom:16px">Save hours every week with these essential Excel shortcuts:</p>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:14px">
+            <thead><tr style="background:#1a56db;color:#fff">
+              <th style="padding:10px 14px;text-align:left;border-radius:8px 0 0 0">Shortcut</th>
+              <th style="padding:10px 14px;text-align:left">Action</th>
+              <th style="padding:10px 14px;text-align:left;border-radius:0 8px 0 0">Why It's Useful</th>
+            </tr></thead>
+            <tbody>
+              ${[
+                ['Ctrl + T','Create Table','Auto-formats data, enables filters'],
+                ['Ctrl + Shift + L','Toggle Filter','Quick filter on/off'],
+                ['Alt + =','AutoSum','Instantly sums a column'],
+                ['Ctrl + D','Fill Down','Copy formula to cells below'],
+                ['Ctrl + ;','Insert Today\'s Date','One keystroke date entry'],
+                ['F2','Edit Cell','Edit without mouse click'],
+                ['Ctrl + Home','Go to A1','Jump to start instantly'],
+                ['Ctrl + End','Last Used Cell','Find end of your data'],
+                ['Ctrl + Shift + +','Insert Row/Column','Faster than right-click'],
+                ['Alt + F1','Create Chart','Instant chart from selection'],
+              ].map((r,i)=>`<tr style="background:${i%2===0?'#f8faff':'#fff'}">
+                <td style="padding:10px 14px"><code style="background:#e2e8f0;padding:2px 8px;border-radius:5px;font-size:13px">${r[0]}</code></td>
+                <td style="padding:10px 14px;font-weight:600;color:#0a1628">${r[1]}</td>
+                <td style="padding:10px 14px;color:#64748b">${r[2]}</td>
+              </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div style="background:#eff6ff;border-left:4px solid #1a56db;padding:14px 16px;border-radius:0 10px 10px 0;margin-top:16px">
+          <strong>💡 Pro Tip:</strong> Press <code style="background:#e2e8f0;padding:1px 6px;border-radius:4px">Ctrl + Shift + End</code> to select all data at once, then <code style="background:#e2e8f0;padding:1px 6px;border-radius:4px">Alt + =</code> to sum it instantly!
+        </div>`
+    },
+    {
+      tag: 'Security',
+      title: 'How to Know If Your Computer Has a Virus (And What to Do)',
+      meta: '6 min read · Important',
+      content: `
+        <p style="font-size:16px;font-weight:600;color:#0a1628;margin-bottom:16px">🚨 Warning signs your computer might be infected:</p>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+          ${['Computer suddenly became very slow','Unexpected pop-ups or ads appearing','Browser homepage changed without your action','Programs opening or closing on their own','Unusual hard drive activity (constant clicking)','Battery draining much faster than usual','Files missing or renamed mysteriously','Friends receiving strange emails from you'].map(s=>`
+            <div style="display:flex;align-items:center;gap:10px;background:#fff5f5;border:1px solid #fecaca;padding:10px 14px;border-radius:8px">
+              <span style="color:#ef4444;font-size:16px">⚠️</span>
+              <span style="font-size:14px;color:#374151">${s}</span>
+            </div>`).join('')}
+        </div>
+        <p style="font-size:16px;font-weight:600;color:#0a1628;margin-bottom:12px">✅ What to do right now:</p>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="background:#f8faff;border-left:4px solid #1a56db;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>1. Disconnect from the Internet</strong><br/>
+            <span style="color:#64748b;font-size:14px">Immediately go offline to stop the virus from sending data or downloading more malware.</span>
+          </div>
+          <div style="background:#f8faff;border-left:4px solid #1a56db;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>2. Run Windows Defender</strong><br/>
+            <span style="color:#64748b;font-size:14px">Start → Windows Security → Virus & Threat Protection → Full Scan. Let it complete — this can take 30–60 minutes.</span>
+          </div>
+          <div style="background:#f8faff;border-left:4px solid #1a56db;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>3. Change Your Passwords</strong><br/>
+            <span style="color:#64748b;font-size:14px">From a different device, change passwords for email, banking, and social media immediately.</span>
+          </div>
+          <div style="background:#fff3cd;border-left:4px solid #f59e0b;padding:14px 16px;border-radius:0 10px 10px 0">
+            <strong>⚠️ If the problem persists</strong><br/>
+            <span style="color:#64748b;font-size:14px">Some viruses hide from basic scans. Our experts do deep malware removal with professional tools — guaranteed clean system or we re-do it free.</span>
+          </div>
+        </div>`
+    },
+    {
+      tag: 'Business',
+      title: 'Why Every Small Business Needs an IT AMC Plan',
+      meta: '8 min read · Business Owners',
+      content: `
+        <p style="font-size:16px;font-weight:600;color:#0a1628;margin-bottom:16px">Running a business without IT support is like driving without insurance. Here's why AMC plans save money:</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+          ${[['Without AMC','With NexServe AMC'],['Pay ₹2000+ per emergency visit','Fixed monthly cost — no surprises'],['Wait hours or days for support','30-min response guaranteed'],['IT problems disrupt your work','Issues caught before they happen'],['No expert on call','Dedicated IT team on WhatsApp'],['Staff wastes time on tech issues','Staff stays focused on work'],['Data loss risks','Regular backups managed for you']].slice(1).map(r=>`
+            <div style="background:#fff5f5;border:1px solid #fecaca;padding:12px;border-radius:10px;font-size:13px">
+              <span style="color:#ef4444">✗</span> ${r[0]}
+            </div>
+            <div style="background:#f0fdf4;border:1px solid #86efac;padding:12px;border-radius:10px;font-size:13px">
+              <span style="color:#10b981">✓</span> ${r[1]}
+            </div>`).join('')}
+        </div>
+        <div style="background:#eff6ff;border-radius:14px;padding:20px;margin-top:8px">
+          <p style="font-weight:700;font-size:15px;color:#0a1628;margin-bottom:12px">Our Business AMC Plans:</p>
+          ${[['Basic','₹2,999/mo','Up to 10 employees'],['Standard','₹6,999/mo','Up to 20 employees'],['Premium','₹11,999/mo','Up to 50 employees']].map(p=>`
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fff;border-radius:10px;margin-bottom:8px;border:1px solid #e2e8f0">
+              <span style="font-weight:700;color:#0a1628">${p[0]}</span>
+              <span style="color:#64748b;font-size:13px">${p[2]}</span>
+              <span style="font-weight:800;color:#1a56db">${p[1]}</span>
+            </div>`).join('')}
+        </div>`
+    }
+  ];
 
-async function saveLead(data) {
-  if (SHEET_URL === 'YOUR_GOOGLE_APPS_SCRIPT_URL') { console.log('Lead (sheet not configured):', data); return; }
-  try {
-    await fetch(SHEET_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body: JSON.stringify({...data, time: new Date().toLocaleString('en-IN'), url: location.href}) });
-  } catch(e) { console.log('Sheet error:', e); }
-}
-
-function waLink(msg) { return `https://wa.me/${WA_NUM}?text=${encodeURIComponent(msg)}`; }
-function openWA(msg) { window.open(waLink(msg), '_blank'); }
-
-// ══════════════════════════════════════════
-// BLOG TIPS DATA (10 tips)
-// ══════════════════════════════════════════
-const TIPS = [
-  { tag:'Performance', title:'How to Fix a Slow Laptop in 5 Minutes', meta:'5 min · Beginner', html:`
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 1 — Restart First</strong><br/><span style="font-size:14px;color:#64748b">Always restart before anything else. Clears RAM & stops stuck processes.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 2 — Disable Startup Programs</strong><br/><span style="font-size:14px;color:#64748b">Ctrl+Shift+Esc → Startup tab → Disable unused apps. Speeds up boot by 2–3x.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 3 — Run Disk Cleanup</strong><br/><span style="font-size:14px;color:#64748b">This PC → Right-click C: → Properties → Disk Cleanup. Delete temp & update files.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 4 — Scan for Viruses</strong><br/><span style="font-size:14px;color:#64748b">Windows Security → Quick Scan. Malware silently eats all your resources.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 5 — Set High Performance Mode</strong><br/><span style="font-size:14px;color:#64748b">Search "Power Plan" → High Performance. Many laptops throttle in battery-save mode.</span></div>
-    <div style="background:#fff3cd;border-left:4px solid #f59e0b;padding:13px 15px;border-radius:0 10px 10px 0"><strong>⚠️ Still Slow?</strong><br/><span style="font-size:14px;color:#64748b">Might need RAM/SSD upgrade. We diagnose & fix from ₹299. Watch full tutorial on <a href="https://www.youtube.com/@ComputerwithTarun" target="_blank" style="color:#cc0000;font-weight:700">Computer with Tarun ▶</a></span></div>` },
-  { tag:'WiFi', title:'Common WiFi Issues & How to Fix Them', meta:'7 min · All Levels', html:`
-    <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Fix 1 — Restart Router</strong><br/><span style="font-size:14px;color:#64748b">Unplug 30 sec → plug back → wait 2 min. Fixes 70% of WiFi issues instantly.</span></div>
-    <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Fix 2 — Reposition Router</strong><br/><span style="font-size:14px;color:#64748b">Central elevated location. Away from walls, microwaves & electronics.</span></div>
-    <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Fix 3 — Switch to 5GHz Band</strong><br/><span style="font-size:14px;color:#64748b">Connect to "YourNetwork_5G" — faster speed, less interference.</span></div>
-    <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Fix 4 — Update Network Drivers</strong><br/><span style="font-size:14px;color:#64748b">Device Manager → Network Adapters → Right-click WiFi → Update Driver.</span></div>
-    <div style="background:#f0fdf4;border-left:4px solid #10b981;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Fix 5 — Use Google DNS</strong><br/><span style="font-size:14px;color:#64748b">Network → IPv4 Properties → DNS: 8.8.8.8 and 8.8.4.4. Speeds up browsing.</span></div>
-    <div style="background:#fff3cd;border-left:4px solid #f59e0b;padding:13px 15px;border-radius:0 10px 10px 0"><strong>⚠️ Still Dropping?</strong><br/><span style="font-size:14px;color:#64748b">Router hardware issue or ISP problem. We fix & setup office networks from ₹299.</span></div>` },
-  { tag:'Productivity', title:'Best Excel Shortcuts Every Professional Needs', meta:'4 min · Beginner', html:`
-    <table style="width:100%;border-collapse:collapse;font-size:14px">
-    <thead><tr style="background:#1a56db;color:#fff"><th style="padding:9px 12px;text-align:left">Shortcut</th><th style="padding:9px 12px;text-align:left">Action</th><th style="padding:9px 12px;text-align:left">Why Useful</th></tr></thead>
-    <tbody>${[['Ctrl+T','Create Table','Auto-filter & format'],['Alt+=','AutoSum','Sum instantly'],['Ctrl+D','Fill Down','Copy formula'],['Ctrl+;','Today Date','One keystroke'],['F2','Edit Cell','No mouse'],['Ctrl+Home','Go to A1','Jump to start'],['Ctrl+Shift++','Insert Row','Fast add row'],['Alt+F1','Create Chart','Instant chart'],['Ctrl+Z','Undo','Fix mistakes'],['Ctrl+Shift+L','Toggle Filter','Quick filter']].map((r,i)=>`<tr style="background:${i%2?'#fff':'#f8faff'}"><td style="padding:8px 12px"><code style="background:#e2e8f0;padding:1px 7px;border-radius:4px;font-size:12px">${r[0]}</code></td><td style="padding:8px 12px;font-weight:600">${r[1]}</td><td style="padding:8px 12px;color:#64748b;font-size:13px">${r[2]}</td></tr>`).join('')}</tbody></table>
-    <div style="background:#eff6ff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-top:12px"><strong>💡 Pro Tip:</strong><span style="font-size:14px;color:#64748b"> Ctrl+Shift+End selects all data, then Alt+= sums it in one go!</span></div>` },
-  { tag:'Security', title:'Is Your Computer Hacked? Signs & Fixes', meta:'6 min · Important', html:`
-    <p style="font-weight:700;color:#0a1628;margin-bottom:10px">🚨 Warning Signs of Infection:</p>
-    ${['Laptop suddenly very slow','Unexpected pop-ups or ads','Browser homepage changed itself','Programs opening on their own','Files missing or renamed','Friends getting spam from your email','Unusual network activity'].map(s=>`<div style="display:flex;gap:9px;align-items:center;background:#fff5f5;border:1px solid #fecaca;padding:9px 13px;border-radius:8px;margin-bottom:7px;font-size:14px"><span>⚠️</span>${s}</div>`).join('')}
-    <p style="font-weight:700;color:#0a1628;margin:14px 0 10px">✅ Immediate Steps:</p>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:9px"><strong>1. Disconnect from Internet</strong><br/><span style="font-size:14px;color:#64748b">Stop virus spreading or downloading more malware immediately.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:9px"><strong>2. Run Full Windows Defender Scan</strong><br/><span style="font-size:14px;color:#64748b">Windows Security → Virus & Threat Protection → Full Scan.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:9px"><strong>3. Change All Passwords from Another Device</strong><br/><span style="font-size:14px;color:#64748b">Email, banking, social media — change all immediately.</span></div>
-    <div style="background:#fff3cd;border-left:4px solid #f59e0b;padding:13px 15px;border-radius:0 10px 10px 0"><strong>⚠️ Virus Not Removed?</strong><br/><span style="font-size:14px;color:#64748b">Deep removal by experts from ₹299 — guaranteed clean system.</span></div>` },
-  { tag:'Business', title:'Why Every Business Needs an IT AMC Plan', meta:'8 min · Business', html:`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px">
-    ${[['Pay ₹2000+ per emergency','Fixed monthly cost'],['Wait hours for support','30-min SLA response'],['IT disrupts your work','Issues fixed proactively'],['No tech expert on call','Dedicated WhatsApp team'],['Data loss risk','Auto backups managed']].map(r=>`<div style="background:#fff5f5;border:1px solid #fecaca;padding:10px;border-radius:9px;font-size:13px"><span style="color:#ef4444">✗</span> ${r[0]}</div><div style="background:#f0fdf4;border:1px solid #86efac;padding:10px;border-radius:9px;font-size:13px"><span style="color:#10b981">✓</span> ${r[1]}</div>`).join('')}</div>
-    <div style="background:#eff6ff;border-radius:12px;padding:16px">
-    ${[['Basic','₹2,999/mo','10 employees'],['Standard','₹6,999/mo','20 employees'],['Premium','₹11,999/mo','50 employees']].map(p=>`<div style="display:flex;justify-content:space-between;background:#fff;border-radius:9px;padding:10px 13px;margin-bottom:7px;border:1px solid #e2e8f0;font-size:14px"><b>${p[0]}</b><span style="color:#64748b">${p[2]}</span><b style="color:#1a56db">${p[1]}</b></div>`).join('')}</div>` },
-  { tag:'Hardware', title:'Printer Not Working? Fix It in 10 Minutes', meta:'4 min · Easy', html:`
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 1 — Set as Default Printer</strong><br/><span style="font-size:14px;color:#64748b">Settings → Devices → Printers → Right-click your printer → Set as Default.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 2 — Restart Print Spooler</strong><br/><span style="font-size:14px;color:#64748b">Search "Services" → Find Print Spooler → Right-click → Restart.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 3 — Reinstall Printer Driver</strong><br/><span style="font-size:14px;color:#64748b">Visit printer brand website → Download latest driver → Install fresh.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 4 — Check USB / WiFi Connection</strong><br/><span style="font-size:14px;color:#64748b">For USB: try different port. For WiFi: ensure printer & PC on same network.</span></div>
-    <div style="background:#fff3cd;border-left:4px solid #f59e0b;padding:13px 15px;border-radius:0 10px 10px 0"><strong>⚠️ Still Offline?</strong><br/><span style="font-size:14px;color:#64748b">Hardware fault possible. We fix printers remotely in 30 min from ₹199.</span></div>` },
-  { tag:'Data Recovery', title:'How to Recover Deleted Files (Step by Step)', meta:'6 min · Important', html:`
-    <div style="background:#fff3cd;border-left:4px solid #f59e0b;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:14px"><strong>⚠️ STOP using the device immediately!</strong><br/><span style="font-size:14px;color:#64748b">Every new file written may overwrite deleted data. Stop now, then try recovery.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 1 — Check Recycle Bin</strong><br/><span style="font-size:14px;color:#64748b">Desktop → Recycle Bin → Find file → Right-click → Restore.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 2 — Check Previous Versions</strong><br/><span style="font-size:14px;color:#64748b">Right-click the folder → Properties → Previous Versions tab → Restore.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Step 3 — Use Recuva (Free Tool)</strong><br/><span style="font-size:14px;color:#64748b">Download Recuva → Scan drive → Recover files marked green (recoverable).</span></div>
-    <div style="background:#fff3cd;border-left:4px solid #f59e0b;padding:13px 15px;border-radius:0 10px 10px 0"><strong>⚠️ Drive Crashed?</strong><br/><span style="font-size:14px;color:#64748b">DON'T FORMAT! Call us before anything. Professional recovery from ₹499.</span></div>` },
-  { tag:'Laptop', title:'Laptop Battery Draining Fast? Here's the Fix', meta:'5 min · All Levels', html:`
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Fix 1 — Check Battery Health</strong><br/><span style="font-size:14px;color:#64748b">CMD as Admin → type: <code style="background:#e2e8f0;padding:1px 6px;border-radius:4px">powercfg /batteryreport</code> → Check wear level.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Fix 2 — Reduce Screen Brightness</strong><br/><span style="font-size:14px;color:#64748b">Display is the biggest battery drain. Keep at 50–60% for best life.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Fix 3 — Enable Battery Saver</strong><br/><span style="font-size:14px;color:#64748b">Settings → System → Battery → Turn on Battery Saver at 20%.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:11px"><strong>Fix 4 — Close Background Apps</strong><br/><span style="font-size:14px;color:#64748b">Task Manager → check CPU & Power usage → close heavy background apps.</span></div>
-    <div style="background:#fff3cd;border-left:4px solid #f59e0b;padding:13px 15px;border-radius:0 10px 10px 0"><strong>⚠️ Battery below 60% health?</strong><br/><span style="font-size:14px;color:#64748b">Time for replacement. We source & replace laptop batteries from ₹999.</span></div>` },
-  { tag:'Windows', title:'Windows Running Slow? 7 Fixes That Actually Work', meta:'7 min · Intermediate', html:`
-    ${[['Disable Visual Effects','Right-click This PC → Properties → Advanced → Performance Settings → Adjust for Best Performance'],['Clear Temp Files','Win+R → type %temp% → Select All → Delete all temp files'],['Defragment HDD','Search Defragment → Optimize Drives → Select C: → Optimize (for HDD only, not SSD)'],['Increase Virtual Memory','System → Advanced → Performance → Virtual Memory → Set to 1.5x your RAM'],['Disable Search Indexing','Services → Windows Search → Startup Type → Disabled (if you rarely search)'],['Update Windows','Settings → Update & Security → Check for Updates → Install all pending'],['Reset Windows (Last Resort)','Settings → Recovery → Reset this PC → Keep my files option']].map((s,i)=>`<div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:9px"><strong>Fix ${i+1} — ${s[0]}</strong><br/><span style="font-size:14px;color:#64748b">${s[1]}</span></div>`).join('')}` },
-  { tag:'Email', title:'Setup Professional Business Email in 5 Minutes', meta:'5 min · Business', html:`
-    <div style="background:#eff6ff;border-radius:12px;padding:16px;margin-bottom:14px"><p style="font-weight:700;color:#0a1628;margin-bottom:10px">Why use business email?</p>
-    ${['Looks professional (you@yourcompany.com vs gmail)','Builds client trust & credibility','Required for many B2B contracts','Better spam protection','Full control over your data'].map(s=>`<div style="font-size:14px;color:#374151;padding:5px 0;border-bottom:1px solid #e2e8f0">✅ ${s}</div>`).join('')}</div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:9px"><strong>Option 1 — Google Workspace (Best)</strong><br/><span style="font-size:14px;color:#64748b">workspace.google.com → ₹125/user/month. Professional Gmail with your domain.</span></div>
-    <div style="background:#f8faff;border-left:4px solid #1a56db;padding:13px 15px;border-radius:0 10px 10px 0;margin-bottom:9px"><strong>Option 2 — Zoho Mail (Free)</strong><br/><span style="font-size:14px;color:#64748b">zoho.com/mail → Free up to 5 users. Great for startups & small teams.</span></div>
-    <div style="background:#fff3cd;border-left:4px solid #f59e0b;padding:13px 15px;border-radius:0 10px 10px 0"><strong>💡 Need help setting it up?</strong><br/><span style="font-size:14px;color:#64748b">We configure business email end-to-end including domain & Outlook setup from ₹499.</span></div>` }
-];
-
-function openTip(i){
-  const t=TIPS[i];
-  document.getElementById('tip-tag').textContent=t.tag;
-  document.getElementById('tip-title').textContent=t.title;
-  document.getElementById('tip-meta').textContent=t.meta;
-  document.getElementById('tip-body').innerHTML=t.html;
-  document.getElementById('tip-modal').style.display='block';
-  document.body.style.overflow='hidden';
-}
-function closeTip(){ document.getElementById('tip-modal').style.display='none'; document.body.style.overflow=''; }
-document.getElementById('tip-modal').addEventListener('click',e=>{ if(e.target===document.getElementById('tip-modal')) closeTip(); });
-
-// ══════════════════════════════════════════
-// ESCALATION POPUP (chatbot fallback)
-// ══════════════════════════════════════════
-function showEscalation(){
-  const popup = document.getElementById('escalation-popup');
-  popup.style.display='flex';
-  popup.style.animation='fadeIn 0.3s ease';
-}
-async function submitEscalation(){
-  const name  = document.getElementById('esc-name').value.trim();
-  const phone = document.getElementById('esc-phone').value.trim();
-  const email = document.getElementById('esc-email').value.trim();
-  const issue = document.getElementById('esc-issue').value.trim();
-  if(!name||!phone){ alert('Please enter your name and WhatsApp number!'); return; }
-  await saveLead({ name, phone, email, issue, source:'Chatbot Escalation' });
-  document.getElementById('escalation-popup').style.display='none';
-  openWA(`Hi NexServe! My name is ${name}. I need help with: ${issue||'IT support'}`);
-}
-
-// ══════════════════════════════════════════
-// AI AGENTS (Human-like)
-// ══════════════════════════════════════════
-const AGENTS = [
-  { name:'Shruti Kumari', role:'IT Support Specialist', avatar:'S', color:'linear-gradient(135deg,#ec4899,#a855f7)',
-    greet:"Hi there! 😊 I'm Shruti from NexServe. I'm here to help you with all your IT issues. What's troubling you today?",
-    personality: ['That sounds frustrating — let me help you fix that right now!','I totally understand, this is a common issue. Here's what to do:','Great question! Here's the best solution:','Don't worry, I've helped many clients with this exact issue!'] },
-  { name:'Shalu Sharma', role:'Customer Success', avatar:'SH', color:'linear-gradient(135deg,#f97316,#eab308)',
-    greet:"Hello! 👋 Shalu here from NexServe support. How can I make your day easier? Tell me your IT problem!",
-    personality: ['Oh yes, I know exactly what's happening here!','Let me guide you step by step through this.','This is something we fix every day — easy solution:','Perfect, I can solve this for you right now!'] },
-  { name:'Rahul Kumar', role:'Network Engineer', avatar:'R', color:'linear-gradient(135deg,#3b82f6,#06b6d4)',
-    greet:"Hey! 😄 This is Rahul from NexServe tech team. I specialize in network & system issues. What's the problem?",
-    personality: ['I've seen this hundreds of times — here's the quick fix:','As a network engineer, I can tell you exactly what's wrong:','Let's troubleshoot this systematically:','Good news — this is fixable! Here's how:'] },
-  { name:'Prakash Thakur', role:'Senior IT Technician', avatar:'P', color:'linear-gradient(135deg,#10b981,#0ea5e9)',
-    greet:"Namaste! 🙏 Prakash here, senior technician at NexServe. 5+ years of fixing IT problems. What can I help you with?",
-    personality: ['In my experience, this is usually caused by:','Classic issue! Here's my tried and tested fix:','I've fixed this same problem 100+ times. Solution:','Trust me on this — the fix is simpler than you think:'] },
-  { name:'Akansha Tripathi', role:'IT Consultant', avatar:'A', color:'linear-gradient(135deg,#8b5cf6,#ec4899)',
-    greet:"Hi! 😃 I'm Akansha, IT consultant at NexServe. I help businesses & individuals solve tech problems fast. What's going on?",
-    personality: ['That must be so annoying! Let me fix that for you:','As an IT consultant, my recommendation is:','I just helped someone with the exact same issue today!','Great that you caught this early! Here's what to do:'] }
-];
-
-let currentAgent = AGENTS[Math.floor(Math.random()*AGENTS.length)];
-let chatOpen=false, chatStarted=false, msgCount=0, userName='';
-
-function setAgent(a){
-  currentAgent=a;
-  document.getElementById('agentAv').textContent=a.avatar;
-  document.getElementById('agentAv').style.background=a.color;
-  document.getElementById('agentName').textContent=a.name;
-  document.getElementById('agentStatus').textContent=a.role+' · Online';
-}
-
-function toggleChat(){
-  chatOpen=!chatOpen;
-  document.getElementById('chatWin').classList.toggle('visible',chatOpen);
-  document.getElementById('chatWin').classList.toggle('hidden',!chatOpen);
-  document.getElementById('chatBadge').style.display='none';
-  if(chatOpen&&!chatStarted){ chatStarted=true; setAgent(currentAgent); setTimeout(startChat,400); }
-}
-
-function startChat(){
-  botMsg(currentAgent.greet, ['🐢 Slow Laptop','📶 WiFi Issues','🦠 Virus/Malware','🖨️ Printer Help','💰 Pricing','📞 WhatsApp Us']);
-}
-
-function botMsg(text, qrs=[], delay=900){
-  const c=document.getElementById('chatMsgs');
-  const t=document.createElement('div');
-  t.className='cmsg bot'; t.id='typing-ind';
-  t.innerHTML=`<div class="cmsg-av" style="background:${currentAgent.color}">${currentAgent.avatar}</div><div class="cmsg-bbl"><div class="typing-bbl"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div></div>`;
-  c.appendChild(t); c.scrollTop=c.scrollHeight;
-  setTimeout(()=>{
-    t.remove();
-    const d=document.createElement('div'); d.className='cmsg bot';
-    const qrHtml=qrs.length?`<div class="qrs">${qrs.map(q=>`<button class="qr" onclick="handleQR('${q.replace(/'/g,"&#39;")}')">${q}</button>`).join('')}</div>`:'';
-    d.innerHTML=`<div class="cmsg-av" style="background:${currentAgent.color}">${currentAgent.avatar}</div><div style="display:flex;flex-direction:column;gap:5px;max-width:100%"><div class="cmsg-bbl">${text}</div>${qrHtml}</div>`;
-    c.appendChild(d); c.scrollTop=c.scrollHeight;
-  }, delay);
-}
-
-function userMsg(text){
-  const c=document.getElementById('chatMsgs');
-  const d=document.createElement('div'); d.className='cmsg user';
-  d.innerHTML=`<div class="cmsg-bbl">${text}</div>`;
-  c.appendChild(d); c.scrollTop=c.scrollHeight;
-}
-
-const KB=[
-  {k:['slow','lagging','hanging','freezing','performance','fast','speed'], r:(p)=>`${p} your laptop is slow because of startup programs, temp files, or possibly malware.<br/><br/><b>Quick Fix:</b><br/>1️⃣ Restart laptop<br/>2️⃣ Ctrl+Shift+Esc → Startup → Disable unused apps<br/>3️⃣ Run Disk Cleanup<br/>4️⃣ Windows Security scan<br/><br/>Still slow? We fix from <b>₹299</b>!`, qr:['Book Laptop Fix — ₹299','Read Full Tip','Talk on WhatsApp']},
-  {k:['wifi','internet','network','connection','drops','disconnect','no internet'], r:(p)=>`${p} WiFi issues are usually router-related.<br/><br/><b>Try this:</b><br/>1️⃣ Restart router (unplug 30 sec)<br/>2️⃣ Connect to 5GHz band<br/>3️⃣ Update network drivers<br/>4️⃣ DNS: 8.8.8.8 & 8.8.4.4<br/><br/>Full setup available in Delhi NCR!`, qr:['Book WiFi Fix','Office Network Setup','Talk on WhatsApp']},
-  {k:['virus','malware','hack','infected','popup','ransomware','suspicious'], r:(p)=>`${p} this sounds serious! 🚨<br/><br/><b>Do this NOW:</b><br/>1️⃣ Disconnect from internet<br/>2️⃣ Windows Security → Full Scan<br/>3️⃣ Change passwords from another device<br/><br/>Deep removal from <b>₹299</b> — guaranteed!`, qr:['Book Virus Removal','Security Guide','Talk on WhatsApp']},
-  {k:['printer','print','offline','printing'], r:(p)=>`${p} printer issues are usually driver-related.<br/><br/><b>Fix it:</b><br/>1️⃣ Restart Print Spooler service<br/>2️⃣ Reinstall driver from brand website<br/>3️⃣ Check USB/WiFi connection<br/><br/>Remote fix in 30 min — ₹199!`, qr:['Remote Printer Fix','Book Onsite','Talk on WhatsApp']},
-  {k:['price','cost','fee','rate','amc','plan','how much','pricing','charge'], r:(p)=>`${p} here's our transparent pricing:<br/><br/>👤 <b>Individual:</b><br/>• ₹9 — Consultation<br/>• ₹99 — Basic Fix<br/>• ₹299+ — Full Solution<br/><br/>🏢 <b>Business AMC:</b><br/>• ₹2,999/mo — 10 staff<br/>• ₹6,999/mo — 20 staff<br/>• ₹11,999/mo — 50 staff`, qr:['Start with ₹9','View Plans','WhatsApp for Quote']},
-  {k:['battery','drain','charging','power'], r:(p)=>`${p} battery issues are common!<br/><br/>1️⃣ Check battery health: <code>powercfg /batteryreport</code><br/>2️⃣ Reduce screen brightness<br/>3️⃣ Close heavy background apps<br/>4️⃣ Enable Battery Saver mode<br/><br/>Battery replacement from ₹999.`, qr:['Book Battery Check','Talk on WhatsApp']},
-  {k:['blue screen','bsod','crash','windows','reinstall','format','restart'], r:(p)=>`${p} Windows issues can be tricky.<br/><br/>1️⃣ Note the error code on blue screen<br/>2️⃣ Try Safe Mode (F8 on boot)<br/>3️⃣ Run: <code>sfc /scannow</code> in CMD<br/>4️⃣ Update Windows fully<br/><br/>Full reinstall with data backup from ₹499.`, qr:['Book Windows Fix','Data Recovery','Talk on WhatsApp']},
-  {k:['data','recovery','deleted','lost','file','backup'], r:(p)=>`${p} act fast — the sooner the better!<br/><br/>⚠️ Stop using the drive NOW<br/>1️⃣ Check Recycle Bin first<br/>2️⃣ Try Recuva (free tool)<br/>3️⃣ Check Previous Versions<br/><br/>Drive crashed? Call before formatting! Recovery from ₹499.`, qr:['Emergency Recovery','Setup Backup','Talk on WhatsApp']},
-  {k:['contact','whatsapp','call','phone','number','reach','email'], r:(p)=>`${p} here's how to reach us:<br/><br/>💬 <b>WhatsApp:</b> +91 96500 46549<br/>📧 <b>Email:</b> nexserve1@gmail.com<br/>📍 <b>Location:</b> Delhi NCR<br/>🕐 <b>Hours:</b> Mon–Sat 9AM–8PM<br/><br/>WhatsApp is fastest — reply in 30 min!`, qr:['Open WhatsApp Now','Send Email','View Services']},
-  {k:['office','business','startup','company','employees','team'], r:(p)=>`${p} we love helping businesses!<br/><br/>✅ Network & WiFi setup<br/>✅ Workstation configuration<br/>✅ Business email (G Suite/M365)<br/>✅ Cloud backup<br/>✅ Monthly AMC from ₹2,999<br/><br/>500+ businesses served in Delhi NCR!`, qr:['Get Business Quote','View AMC Plans','Talk on WhatsApp']}
-];
-
-const GREET=['hi','hello','hey','namaste','hlo','hii','good morning','good evening','howdy'];
-const THANKS=['thank','thanks','thx','great','perfect','awesome','helpful','nice'];
-
-function handleQR(txt){
-  userMsg(txt);
-  msgCount++;
-  const low=txt.toLowerCase();
-  if(low.includes('whatsapp')||low.includes('wa')||low.includes('open whatsapp')){
-    botMsg("Connecting you now! 🚀 Our team responds within 30 minutes.",[]);
-    setTimeout(()=>openWA(`Hi ${currentAgent.name}! I need IT support.`),1000); return;
+  function openTip(index) {
+    const t = tips[index];
+    document.getElementById('tip-modal-tag').textContent = t.tag;
+    document.getElementById('tip-modal-title').textContent = t.title;
+    document.getElementById('tip-modal-meta').textContent = t.meta;
+    document.getElementById('tip-modal-body').innerHTML = t.content;
+    document.getElementById('tip-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
   }
-  if(low.includes('book')||low.includes('₹299')||low.includes('₹199')||low.includes('₹499')||low.includes('₹9')||low.includes('quote')){
-    const svc=txt.replace(/Book |Fix|—.*/g,'').trim();
-    botMsg(`Great choice! Connecting you to WhatsApp to book ${svc} 🎯`,[]);
-    setTimeout(()=>openWA(`Hi NexServe! I want to book: ${svc}. Please confirm availability.`),1000); return;
+  function closeTip() {
+    document.getElementById('tip-modal').style.display = 'none';
+    document.body.style.overflow = '';
   }
-  if(low.includes('tip')||low.includes('guide')||low.includes('read')){
-    botMsg("Check out our free IT tips section below! Click any card to read 📖",['More IT Questions','Talk on WhatsApp']);
-    setTimeout(()=>document.querySelector('#blog').scrollIntoView({behavior:'smooth'}),1200); return;
-  }
-  if(low.includes('plan')||low.includes('pricing')||low.includes('price')){
-    botMsg("Scrolling to our pricing section now! 💰",['Talk on WhatsApp']);
-    setTimeout(()=>document.querySelector('#pricing').scrollIntoView({behavior:'smooth'}),1000); return;
-  }
-  processChat(txt);
-}
+  document.getElementById('tip-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('tip-modal')) closeTip();
+  });
 
-function sendChat(){
-  const inp=document.getElementById('chatInp');
-  const txt=inp.value.trim(); if(!txt) return;
-  inp.value=''; processChat(txt);
-}
+  // ══════════════════════════════════════════
+  // AI CHATBOT
+  // ══════════════════════════════════════════
+  const botKnowledge = [
+    {
+      patterns: ['slow','laptop slow','computer slow','speed','performance','hanging','lagging','fast'],
+      response: "🐢 <b>Slow Laptop Fix</b><br/>Try these steps:<br/>1️⃣ Restart your laptop<br/>2️⃣ Disable startup programs (Ctrl+Shift+Esc → Startup)<br/>3️⃣ Run Disk Cleanup<br/>4️⃣ Check for viruses<br/><br/>Still slow? We fix it in 60 min from <b>₹299</b>!",
+      quick: ['Book ₹299 Fix', 'More Tips', 'Talk to Expert']
+    },
+    {
+      patterns: ['wifi','internet','network','connection','disconnecting','no internet','drops','slow internet'],
+      response: "📶 <b>WiFi Issues</b><br/>Quick fixes:<br/>1️⃣ Restart your router (unplug 30 sec)<br/>2️⃣ Move closer to the router<br/>3️⃣ Connect to 5GHz band<br/>4️⃣ Update network drivers<br/><br/>Need a full network setup? We're in Delhi NCR!",
+      quick: ['Book WiFi Fix', 'Office Network Setup', 'Talk to Expert']
+    },
+    {
+      patterns: ['virus','malware','hacked','infected','pop up','popup','suspicious','ransomware'],
+      response: "🦠 <b>Virus / Malware Detected?</b><br/>Do this immediately:<br/>1️⃣ Disconnect from internet<br/>2️⃣ Run Windows Defender (Full Scan)<br/>3️⃣ Change passwords from another device<br/><br/>⚠️ Don't wait — viruses spread fast. Our experts do full removal from <b>₹299</b>.",
+      quick: ['Book Virus Removal', 'Read Security Guide', 'Talk to Expert']
+    },
+    {
+      patterns: ['printer','print','printing','not printing','offline printer'],
+      response: "🖨️ <b>Printer Problem?</b><br/>Common fixes:<br/>1️⃣ Set as default printer<br/>2️⃣ Restart Print Spooler (Services app)<br/>3️⃣ Reinstall printer driver<br/>4️⃣ Check USB/WiFi connection<br/><br/>Have a meeting soon? We fix printers remotely in 30 min!",
+      quick: ['Remote Printer Fix', 'Book Onsite Visit', 'Talk to Expert']
+    },
+    {
+      patterns: ['price','cost','charge','fee','how much','pricing','rate','amc','plan','monthly'],
+      response: "💰 <b>Our Pricing</b><br/>👤 <b>Individual:</b><br/>• Consultation: ₹9<br/>• Basic Fix: ₹99<br/>• Full Solution: ₹299+<br/><br/>🏢 <b>Business AMC:</b><br/>• Basic: ₹2,999/mo (10 staff)<br/>• Standard: ₹6,999/mo (20 staff)<br/>• Premium: ₹11,999/mo (50 staff)",
+      quick: ['Start with ₹9 Consult', 'View All Plans', 'Talk to Expert']
+    },
+    {
+      patterns: ['contact','whatsapp','call','phone','reach','support','help','talk','speak'],
+      response: "📞 <b>Contact NexServe</b><br/>💬 WhatsApp: +91 99999 99999<br/>📧 Email: nexserve1@gmail.com<br/>📍 Location: Delhi NCR<br/>🕐 Hours: Mon–Sat 9AM–8PM<br/><br/>WhatsApp is the fastest way — we reply in under 30 minutes!",
+      quick: ['Open WhatsApp', 'Send Email', 'View Services']
+    },
+    {
+      patterns: ['windows','install','reinstall','format','os','operating system','blue screen','bsod','crash'],
+      response: "🪟 <b>Windows Issues</b><br/>Blue screen or crashed Windows?<br/>1️⃣ Note the error code on screen<br/>2️⃣ Try Safe Mode (F8 on boot)<br/>3️⃣ Run System File Checker: <code>sfc /scannow</code><br/><br/>For full reinstall or data recovery — we handle it onsite in Delhi NCR from <b>₹499</b>.",
+      quick: ['Book Windows Reinstall', 'Data Recovery Help', 'Talk to Expert']
+    },
+    {
+      patterns: ['data','recovery','lost','deleted','file','backup','restore'],
+      response: "💾 <b>Data Recovery</b><br/>Lost important files?<br/>⚠️ Stop using the drive immediately!<br/>1️⃣ Check Recycle Bin first<br/>2️⃣ Try Ctrl+Z to undo deletion<br/>3️⃣ Check Previous Versions (right-click folder)<br/><br/>If the drive crashed — <b>don't format it!</b> Call us first. We recover data from ₹499.",
+      quick: ['Emergency Data Recovery', 'Setup Auto Backup', 'Talk to Expert']
+    },
+    {
+      patterns: ['email','outlook','gmail','mail','setup','configure','exchange','office 365'],
+      response: "📧 <b>Email Setup</b><br/>We set up:<br/>✅ Business email (yourname@yourcompany.com)<br/>✅ Microsoft 365 / G Suite<br/>✅ Outlook configuration<br/>✅ Email migration<br/><br/>A professional business email builds trust with clients. Setup from <b>₹499</b>.",
+      quick: ['Setup Business Email', 'Microsoft 365 Help', 'Talk to Expert']
+    },
+    {
+      patterns: ['office','business','company','startup','team','employees','setup','new office'],
+      response: "🏢 <b>Business IT Setup</b><br/>Starting a new office? We handle:<br/>✅ Network & WiFi setup<br/>✅ Workstation configuration<br/>✅ Business email setup<br/>✅ Cloud storage & backup<br/>✅ Monthly AMC from ₹2,999<br/><br/>We've helped 50+ Delhi NCR businesses get their IT right from day one!",
+      quick: ['Get Office Setup Quote', 'View AMC Plans', 'Talk to Expert']
+    }
+  ];
 
-function processChat(txt){
-  userMsg(txt); msgCount++;
-  const low=txt.toLowerCase();
-  const p=currentAgent.personality[Math.floor(Math.random()*currentAgent.personality.length)];
+  const greetPatterns = ['hi','hello','hey','namaste','good morning','good evening','hlo','hii'];
+  const thankPatterns = ['thank','thanks','thx','ty','great','awesome','perfect','helpful'];
 
-  // Capture name if user introduces themselves
-  const nameMatch=txt.match(/(?:my name is|i am|i'm|call me)\s+([A-Za-z]+)/i);
-  if(nameMatch){ userName=nameMatch[1]; }
+  let chatOpen = false;
+  let chatStarted = false;
 
-  const greeting=`${userName?'Hi '+userName+'! 😊 ':''}`; 
-
-  if(GREET.some(g=>low.includes(g))){
-    botMsg(`Hello${userName?' '+userName:''}! 👋 Great to connect with you! I'm ${currentAgent.name}. How can I help you today?`,['🐢 Slow Laptop','📶 WiFi Issue','🦠 Virus Problem','💰 Pricing','📞 WhatsApp Us']); return;
-  }
-  if(THANKS.some(g=>low.includes(g))){
-    botMsg(`You're so welcome${userName?' '+userName:''}! 😊 That's what we're here for. Anything else I can help you with?`,['More IT Questions','View Our Services','WhatsApp for Support']); return;
-  }
-
-  for(const kb of KB){
-    if(kb.k.some(k=>low.includes(k))){
-      botMsg(p+' '+kb.r(greeting), kb.qr); return;
+  function toggleChat() {
+    chatOpen = !chatOpen;
+    const win = document.getElementById('chatbot-window');
+    win.classList.toggle('visible', chatOpen);
+    win.classList.toggle('hidden', !chatOpen);
+    // Remove notification badge
+    const badge = document.querySelector('.chat-badge');
+    if (badge) badge.style.display = 'none';
+    if (chatOpen && !chatStarted) {
+      chatStarted = true;
+      setTimeout(() => startChat(), 300);
     }
   }
 
-  // Unknown — offer escalation after 2 tries
-  if(msgCount>=3){
-    botMsg(`${greeting}I want to make sure you get the best help! Let me connect you with our technical team directly. They'll solve this in minutes! 💪`,[]);
-    setTimeout(showEscalation, 1200);
-  } else {
-    botMsg(`${greeting}I want to understand your issue better. Could you tell me more? For example, is it related to your laptop, WiFi, printer, or something else?`,['🐢 Laptop/PC Issue','📶 WiFi/Internet','🦠 Virus/Security','🖨️ Printer','💰 Pricing','🙋 Something Else']);
+  function startChat() {
+    addBotMsg("👋 Hi! I'm the <b>NexServe Assistant</b>. I can help you fix common IT problems instantly!<br/><br/>What are you facing today?", [
+      '🐢 Slow Laptop', '📶 WiFi Issues', '🦠 Virus Problem',
+      '🖨️ Printer Help', '💰 Pricing', '📞 Contact Us'
+    ]);
   }
-}
 
-// ══════════════════════════════════════════
-// CONTACT FORM with Lead Saving
-// ══════════════════════════════════════════
-function handleSubmit(){
-  const name    = document.querySelector('input[placeholder="Your Name"]')?.value.trim()||'';
-  const phone   = document.querySelector('input[placeholder="Phone / WhatsApp No."]')?.value.trim()||'';
-  const email   = document.querySelector('input[placeholder="Email Address"]')?.value.trim()||'';
-  const service = document.querySelector('#contact select')?.value||'';
-  const message = document.querySelector('.form-textarea')?.value.trim()||'';
+  function addBotMsg(text, quickReplies = [], delay = 0) {
+    const msgs = document.getElementById('chat-messages');
+    // Show typing indicator
+    const typing = document.createElement('div');
+    typing.className = 'msg bot';
+    typing.id = 'typing-indicator';
+    typing.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+    msgs.appendChild(typing);
+    msgs.scrollTop = msgs.scrollHeight;
 
-  if(!name&&!phone&&!email){ showAlert('⚠️ Please fill your name or phone number.','warn'); return; }
+    setTimeout(() => {
+      typing.remove();
+      const div = document.createElement('div');
+      div.className = 'msg bot';
+      div.innerHTML = `<div class="msg-avatar">🤖</div><div style="display:flex;flex-direction:column;gap:8px;max-width:85%"><div class="msg-bubble">${text}</div>${quickReplies.length ? `<div class="quick-replies">${quickReplies.map(q=>`<button class="qr-btn" onclick="handleQuickReply('${q}')">${q}</button>`).join('')}</div>` : ''}</div>`;
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+    }, delay || 900);
+  }
 
-  const btn=document.querySelector('.btn-submit');
-  btn.textContent='⏳ Sending...'; btn.disabled=true;
+  function addUserMsg(text) {
+    const msgs = document.getElementById('chat-messages');
+    const div = document.createElement('div');
+    div.className = 'msg user';
+    div.innerHTML = `<div class="msg-bubble">${text}</div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
 
-  saveLead({ name, phone, email, service, message, source:'Contact Form' });
+  function handleQuickReply(text) {
+    const clean = text.replace(/^[^\s]+\s/, '').toLowerCase();
+    if (text.includes('WhatsApp') || text.includes('Expert') || text.includes('Book') || text.includes('Talk')) {
+      addUserMsg(text);
+      if (text.includes('WhatsApp') || text.includes('Expert') || text.includes('Talk')) {
+        addBotMsg("Connecting you to our team now! 🚀<br/><br/>Click below to open WhatsApp — we'll respond in under 30 minutes!", []);
+        setTimeout(()=>{ window.open("https://wa.me/919999999999?text=Hi%20NexServe!%20I%20need%20IT%20support.", "_blank"); }, 1200);
+        return;
+      }
+    }
+    processMessage(text);
+  }
 
-  setTimeout(()=>{
-    btn.textContent='Send Message — We'll Reply Fast ⚡'; btn.disabled=false;
-    showAlert('✅ Thank you '+name+'! We'll WhatsApp you within 30 minutes.','success');
-    // Clear form
-    document.querySelector('input[placeholder="Your Name"]').value='';
-    document.querySelector('input[placeholder="Phone / WhatsApp No."]').value='';
-    document.querySelector('input[placeholder="Email Address"]').value='';
-    if(document.querySelector('#contact select')) document.querySelector('#contact select').selectedIndex=0;
-    if(document.querySelector('.form-textarea')) document.querySelector('.form-textarea').value='';
-    // Also open WhatsApp
-    setTimeout(()=>openWA(`Hi NexServe! My name is ${name}. Phone: ${phone}. I need help with: ${service||message||'IT support'}`),1500);
-  },1200);
-}
+  function sendUserMsg() {
+    const input = document.getElementById('chat-input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    processMessage(text);
+  }
 
-function showAlert(msg, type){
-  let el=document.getElementById('form-alert');
-  if(!el){el=document.createElement('div');el.id='form-alert';document.querySelector('.btn-submit').after(el);}
-  const c={success:'background:#d1fae5;border-color:#10b981;color:#065f46',warn:'background:#fef3c7;border-color:#f59e0b;color:#92400e',error:'background:#fee2e2;border-color:#ef4444;color:#991b1b'};
-  el.style.cssText=`${c[type]};border:1px solid;padding:12px 15px;border-radius:10px;font-size:14px;font-weight:600;margin-top:11px;line-height:1.6`;
-  el.textContent=msg;
-  setTimeout(()=>el.remove(),6000);
-}
+  function processMessage(text) {
+    addUserMsg(text);
+    const lower = text.toLowerCase();
 
-// ══════════════════════════════════════════
-// ALL ORIGINAL FUNCTIONS
-// ══════════════════════════════════════════
-function switchTab(name, btn) {
+    // Greeting
+    if (greetPatterns.some(p => lower.includes(p))) {
+      addBotMsg("Hello! 👋 Great to hear from you!<br/>How can I help you today?", ['🐢 Slow Laptop','📶 WiFi Issues','🦠 Virus Problem','💰 Pricing','📞 Contact Us']);
+      return;
+    }
+    // Thanks
+    if (thankPatterns.some(p => lower.includes(p))) {
+      addBotMsg("You're welcome! 😊 We're always here to help.<br/>Anything else you'd like to know?", ['More IT Tips','View Pricing','Contact NexServe']);
+      return;
+    }
+    // View Pricing link
+    if (lower.includes('view all plans') || lower.includes('view pricing') || lower.includes('pricing page')) {
+      addBotMsg("Here's our pricing page 👇", []);
+      setTimeout(()=>{ document.querySelector('#pricing').scrollIntoView({behavior:'smooth'}); toggleChat(); }, 1000);
+      return;
+    }
+    // More Tips
+    if (lower.includes('more tip') || lower.includes('it tips') || lower.includes('guide') || lower.includes('blog')) {
+      addBotMsg("Check out our free IT tips section 📖", []);
+      setTimeout(()=>{ document.querySelector('#blog').scrollIntoView({behavior:'smooth'}); toggleChat(); }, 1000);
+      return;
+    }
+
+    // Knowledge base match
+    for (const kb of botKnowledge) {
+      if (kb.patterns.some(p => lower.includes(p))) {
+        addBotMsg(kb.response, kb.quick);
+        return;
+      }
+    }
+
+    // Default fallback
+    addBotMsg("I'm not sure about that specific issue, but our team definitely can help! 💪<br/><br/>Common topics I can help with:", ['🐢 Slow Laptop','📶 WiFi Issues','🦠 Virus Problem','🖨️ Printer Help','💰 Pricing','📞 Contact Us']);
+  }
+
+  function switchTab(name, btn) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + name).classList.add('active');
@@ -1391,7 +1515,6 @@ function switchTab(name, btn) {
   }
   function toggleMenu() {
     const links = document.querySelector('.nav-links');
-    if(!links) return;
     links.style.display = links.style.display === 'flex' ? 'none' : 'flex';
     links.style.flexDirection = 'column';
     links.style.position = 'absolute';
@@ -1401,52 +1524,38 @@ function switchTab(name, btn) {
     links.style.background = 'rgba(10,22,40,0.98)';
     links.style.padding = '20px 5%';
     links.style.gap = '16px';
-    links.style.zIndex = '999';
+  }
+  function handleSubmit() {
+    alert('Thank you! We\'ll get back to you very shortly.\n\nFor the fastest response, message us on WhatsApp! 📱');
   }
 
-  // Track WA clicks
-  document.querySelectorAll('a[href*="wa.me"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if(typeof gtag!=='undefined') gtag('event','whatsapp_click',{event_category:'Lead',event_label:'WA Button'});
-    });
-  });
-
-  // Scroll nav highlight
+  // Smooth nav highlight on scroll
   const sections = document.querySelectorAll('section[id]');
   window.addEventListener('scroll', () => {
     let current = '';
-    sections.forEach(s => { if (window.scrollY >= s.offsetTop - 100) current = s.getAttribute('id'); });
+    sections.forEach(s => {
+      if (window.scrollY >= s.offsetTop - 100) current = s.getAttribute('id');
+    });
     document.querySelectorAll('.nav-links a').forEach(a => {
       a.style.color = a.getAttribute('href') === '#' + current ? 'var(--accent)' : '';
     });
   });
 
-  // Fade-in on scroll
-  const obs = new IntersectionObserver((entries) => {
+  // Intersection observer for fade-in
+  const observer = new IntersectionObserver((entries) => {
     entries.forEach(e => {
-      if (e.isIntersecting) { e.target.style.opacity='1'; e.target.style.transform='translateY(0)'; }
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
     });
   }, { threshold: 0.1 });
-  document.querySelectorAll('.problem-card,.svc-card,.why-card,.price-card,.testi-card,.blog-card').forEach(el => {
-    el.style.opacity='0'; el.style.transform='translateY(20px)'; el.style.transition='opacity 0.5s ease,transform 0.5s ease';
-    obs.observe(el);
+  document.querySelectorAll('.problem-card, .svc-card, .why-card, .price-card, .testi-card, .blog-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
   });
-
-  // Blog card hover
-  document.querySelectorAll('.blog-card').forEach(c=>{
-    c.style.transition='all 0.25s';
-    c.addEventListener('mouseenter',()=>{c.style.transform='translateY(-5px)';c.style.boxShadow='0 12px 30px rgba(26,86,219,0.13)';});
-    c.addEventListener('mouseleave',()=>{c.style.transform='';c.style.boxShadow='';});
-  });
-
-</script>
-<style>@keyframes fadeIn{from{opacity:0}to{opacity:1}}</style>
-     <script>
-function toggleChat() {
-  let box = document.getElementById("chatBox");
-  if (!box) return;
-  box.style.display = (box.style.display === "flex") ? "none" : "flex";
-}
 </script>
 </body>
 </html>
