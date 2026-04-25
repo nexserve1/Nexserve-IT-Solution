@@ -1754,24 +1754,6 @@
     });
   });
 
-  // Fade-in on scroll
-  var obs = new IntersectionObserver(function(entries) {
-    entries.forEach(function(e) {
-      if (e.isIntersecting) {
-        e.target.style.opacity = '1';
-        e.target.style.transform = 'translateY(0)';
-      }
-    });
-  }, { threshold: 0.1 });
-
-  document.querySelectorAll('.problem-card,.svc-card,.why-card,.price-card,.testi-card,.blog-card').forEach(function(el) {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-    obs.observe(el);
-  });
-
-})();
-</script>
+ </script>
 </body>
 </html>
